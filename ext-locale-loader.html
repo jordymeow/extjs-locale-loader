@@ -1,0 +1,42 @@
+<html>
+<head>
+
+    <title>ExtJS 4.x MVC Locale Loader</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="ext/resources/css/ext-all.css" />
+    <script type="text/javascript" src="ext/ext-all-debug.js"></script>
+    <script type="text/javascript" src="ext-locale-loader.js"></script>
+
+</head>
+
+<body>
+
+	<script type="text/javascript">
+		Ext.onReady(function () {
+			Ext.Loader.setConfig({ 
+				enabled: true
+			});
+
+			Ext.Loader.setLocale({
+				enabled: false,
+				language: 'fr',
+				localizedByDefault: false,
+				types: [ 'controller', 'view' ]
+			});
+
+			Ext.create('Ext.app.Application', {
+				name: 'AppTest',
+				appFolder: 'app',
+				autoCreateViewport: true,
+				controllers: [ 'AppController' ],
+				
+				launch: function () {
+				}	
+			});
+		});
+	</script>
+
+</body>
+
+
+</html>
