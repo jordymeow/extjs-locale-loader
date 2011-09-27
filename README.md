@@ -1,7 +1,7 @@
 ExtJS Locale Loader
 ===================
 
-The ext-locale-loader is used to dynamically load the required resources files. It allows you to translate your existing ExtJS 4 MVC application to be localized very easily, without too many steps (except, of course, translating).
+The ext-locale-loader is used to dynamically load the required resources files for your classes + the ExtJS locale file. Your existing ExtJS 4 MVC application will be able to be localized very easily, without too many steps (except, of course, translating).
 
 Prerequisites
 =============
@@ -10,7 +10,7 @@ You need ExtJS 4.x, and the demonstration will look for it in the folder `/ext`.
 
 Example
 =======
-You can run the example using either of those files:
+You can run the example using either of those files hosted on a web server:
 
 - ext-locale-loader.html
 - ext-locale-loader-fr.html
@@ -24,6 +24,7 @@ The initialization code must be executed along with the Ext.Loader.setConfig (be
 	Ext.Loader.setLocale({
 	
 		enabled: true, // false by default
+		// extLocalePath: 'ext-4.0.2/locale' if you want to use ExtJS locale file (check the end of the README)
 		language: 'fr',
 		localizedByDefault: false,
 		types: [ 'controller', 'view' ]
@@ -57,4 +58,9 @@ Each of them contain a class which redefine the resources (which are used in the
 		xDeleteCurrentTabConfirmation: "Souhaitez-vous vraiment supprimer cet onglet ?"
 	});
 
+The ExtJS 4 Locale File Issue
+=============================
+- Using "ext.js" only (and not ext-all), the ExtJS locale file will not be applied properly. It doesn't affect the Application's classes though, so those ones will still be translated. Thanks for your help on that issue if you find any solution.
+	
+	
 Copyright (c) 2011 Jordy Theiller, released under the MIT license.

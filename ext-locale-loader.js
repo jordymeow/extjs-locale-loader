@@ -25,6 +25,8 @@ Ext.apply(Ext.Loader, {
         language: null,
         path: 'locale',
         localizedByDefault: false,
+        extLocalePath: false,
+        i18nServer: false,
         types: []
     },
     
@@ -53,10 +55,39 @@ Ext.apply(Ext.Loader, {
         return false;
     },
     
+    // TODO
+    // This function is called too many times, it would be nice to find
+    // a way to optimize the caller.
+    applyLocaleForExtJS: function () {
+        if (!!Ext.Loader.locale.extLocale) {
+            try {
+                eval(Ext.Loader.locale.extLocale);
+            } catch (ex) {
+            }
+        }
+    },
+
     initLocaleManager: function () {
         
         if (!this.locale.enabled) {
             return;
+        }
+
+        if (!!Ext.Loader.locale.extLocalePath) {
+            Ext.onReady(function () {
+                Ext.Loader.locale.isReady = true;
+                var url = Ext.Loader.locale.extLocalePath + "/ext-lang-" + Ext.Loader.locale.language + ".js";
+                Ext.Ajax.request({
+                    async: false,
+                    url: url,
+                    proxy: {
+                        type: 'json'
+                    },
+                    success: function (response) {
+                        Ext.Loader.locale.extLocale = response.responseText;
+                    }
+                });
+            });
         }
 
         // LOCALE LOADER
@@ -64,31 +95,71 @@ Ext.apply(Ext.Loader, {
             var scope = Ext.Loader;
             var className = data.$className;
             var type = scope.isLocalizedClass(className, data);
+
+            if (!type && !!Ext.Loader.locale.extLocalePath && !!Ext.Loader.locale.isReady) {
+                scope.applyLocaleForExtJS();
+            }
             if (type) {
                 var dependencies = data.requires = data.requires || [];
                 var appName = className.substring(0, className.indexOf("." + type));
                 var dependency = appName + ".locale." + scope.locale.language + "." + className.substring(appName.length + 1);
-                dependencies.push(dependency);
-            }
-        }, true).setDefaultPreprocessorPosition('localeLoader', 'first');
-        
-        // LOCALE APPLIER
-        Ext.Class.registerPreprocessor('localeApplier', function (cls, data, fn) {
-            var scope = Ext.Loader;
-            var className = data.$className;
-            var type = scope.isLocalizedClass(className, data);
-            if (type) {
-                var appName = className.substring(0, className.indexOf("." + type));
-                var dependency = appName + ".locale." + scope.locale.language + "." + className.substring(appName.length + 1);
-                var localeClass = Ext.create(dependency);
-                var localeProperties = {};
-                for (var member in localeClass) {
-                    if (member[0] === 'x') {
-                        localeProperties[member] = localeClass[member];
+                try
+                {
+                    // Previously used "dependencies.push(dependency)" and another preprocessor
+                    // to apply the locale file. Everything is done in the same one now.
+                    var useServer = !!scope.locale.i18nServer;
+                    var url = scope.getPath(dependency);
+                    var url = useServer ? ("http://" + scope.locale.i18nServer + "/" + url.substring(url.indexOf("/locale/") + "/locale/".length)) : url;
+
+                    // JSONP
+                    if (useServer) {
+                        alert(url);
+                        Ext.data.JsonP({
+                            async: false,
+                            url: url,
+                            callback: function (response) {
+                                alert("JSONP RESPONSE");
+                                eval(response.responseText);
+                                var localeClass = Ext.create(dependency);
+                                var localeProperties = {};
+                                for (var member in localeClass) {
+                                    if (member[0] === 'x') {
+                                        localeProperties[member] = localeClass[member];
+                                    }
+                                };
+                                Ext.apply(data, localeProperties);
+                            },
+                            failure: function () {
+                            }
+                        });
+                    } else {
+                        Ext.Ajax.request({
+                            async: false,
+                            url: url,
+                            proxy: {
+                                type: 'json',
+                                url: url
+                            },
+                            success: function (response) {
+                                eval(response.responseText);
+                                var localeClass = Ext.create(dependency);
+                                var localeProperties = {};
+                                for (var member in localeClass) {
+                                    if (member[0] === 'x') {
+                                        localeProperties[member] = localeClass[member];
+                                    }
+                                };
+                                Ext.apply(data, localeProperties);
+                            },
+                            failure: function () {
+                            }
+                        });
                     }
-                };
-                Ext.apply(data, localeProperties);
+                }
+                catch (ex) {
+                }
+                
             }
-        }, true).setDefaultPreprocessorPosition('localeApplier', 'last');
+        }, true).setDefaultPreprocessorPosition('localeLoader', 'last');
     }
 });
