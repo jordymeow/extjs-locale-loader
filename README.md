@@ -61,6 +61,3 @@ Each of them contain a class which redefine the resources (which are used in the
 The ExtJS 4 Locale File Issue
 =============================
 - Using "ext.js" only (and not ext-all), the ExtJS locale file will not be applied properly. It doesn't affect the Application's classes though, so those ones will still be translated. Thanks for your help on that issue if you find any solution.
-	
-	
-Copyright (c) 2011 Jordy Theiller, released under the MIT license.
